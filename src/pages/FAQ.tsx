@@ -5,11 +5,11 @@ import { ChevronDown, HelpCircle } from "lucide-react";
 const faqs = [
   { q: "What is KAVACH?", a: "KAVACH (powered by VAJRA) is an AI-powered emergency response system that creates dynamic green corridors for ambulances, defence, and VIP vehicles by intelligently controlling traffic signals in real-time." },
   { q: "How does the green corridor work?", a: "Our AI analyses traffic patterns, predicts optimal routes, and automatically adjusts traffic signals ahead of the emergency vehicle to create a clear path — reducing travel time by a projected 25-40%." },
-  { q: "Is this actually deployed anywhere?", a: "KAVACH is currently in the simulation and pilot stage. We have a working simulation using Chennai traffic data. We are seeking government partnerships for real-world deployment." },
-  { q: "What about the patent?", a: "A patent application has been filed with the Indian Patent Office covering the core AI-CER technology for dynamic green corridor creation." },
+  { q: "Is this actually deployed anywhere?", a: "KAVACH is currently in the simulation and pilot stage. We have a working simulation using Andheri (Mumbai) traffic data. We are seeking government partnerships for real-world deployment." },
+  { q: "What about the patent?", a: "A patent application has been on process with the Indian Patent Office covering the core VAJRA technology for dynamic green corridor creation." },
   { q: "How accurate are the city impact projections?", a: "The projections are based on internal simulation modelling and publicly available data. Actual results will vary based on city infrastructure, traffic density, and deployment scope. They are estimates for illustration." },
   { q: "Can this work with existing traffic infrastructure?", a: "KAVACH is designed to integrate with existing traffic signal systems. However, compatibility depends on the specific infrastructure in each city and requires a technical assessment." },
-  { q: "How can I get involved?", a: "You can invest, donate, volunteer, or simply spread awareness. Visit our Join Us page or contact us at savelives@kavach.com." },
+  { q: "How can I get involved?", a: "You can invest, donate, volunteer, or simply spread awareness. Visit our Join Us page or contact us at [kavachvajra@gmail.com]" },
   { q: "Is this only for India?", a: "While designed in India, the technology is scalable globally. We have impact projections for international cities as well." },
 ];
 

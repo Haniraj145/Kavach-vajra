@@ -4,6 +4,7 @@ import { Heart, AlertTriangle, TrendingDown, Clock, Zap, Shield, Brain, Activity
 import { Link } from "react-router-dom";
 import CitySelector from "@/components/CitySelector";
 import HospitalFinder from "@/components/HospitalFinder";
+import Feedback from "./Feedback";
 
 const LiveCounter = () => {
   const [count, setCount] = useState(0);
@@ -67,7 +68,7 @@ const Index = () => {
           transition={{ duration: 0.8 }}
         >
           <Heart className="h-16 w-16 text-destructive mx-auto mb-6 pulse-glow" />
-           <h1 className="font-display text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-4 px-2">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-4 px-2">
             WHAT IF <span className="text-gradient-primary">YOUR LOVED ONE</span>
             <br className="hidden sm:block" /><span className="sm:hidden"> </span>NEEDED AN AMBULANCE
             <br className="hidden sm:block" /><span className="sm:hidden"> </span><span className="text-destructive">RIGHT NOW?</span>
@@ -224,8 +225,8 @@ const Index = () => {
             <Link to="/request-demo" className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 font-semibold text-primary-foreground glow-primary hover:opacity-90 transition-all">
               Request Demo
             </Link>
-            <Link to="/join-us" className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 font-semibold text-accent-foreground hover:opacity-90 transition-all">
-              Join the Movement
+            <Link to="/feedback" className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 font-semibold text-accent-foreground hover:opacity-90 transition-all">
+              Give Feedback
             </Link>
           </div>
         </div>

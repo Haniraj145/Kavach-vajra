@@ -1,14 +1,55 @@
 import { motion } from "framer-motion";
 import { Calendar, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const blogPosts = [
-  { title: "India's Road Crisis: 474 Deaths Every Day", date: "Feb 2026", tag: "Crisis", excerpt: "172,890 road deaths in 2023 — the highest ever recorded. Understanding the scale of the emergency.", color: "text-destructive" },
-  { title: "The Golden Hour: Why Every Minute Matters", date: "Jan 2026", tag: "Medical", excerpt: "For cardiac arrest patients, global survival to hospital discharge averages only 8.8%. Faster response is critical.", color: "text-accent" },
-  { title: "How AI-CER Creates Green Corridors", date: "Jan 2026", tag: "Technology", excerpt: "Our AI predicts traffic patterns and dynamically adjusts signals to create clear paths for emergency vehicles.", color: "text-primary" },
-  { title: "Chennai Simulation: 25-40% Faster Response", date: "Dec 2025", tag: "Data", excerpt: "Our Chennai urban traffic simulation projects significant reduction in emergency vehicle travel time.", color: "text-primary" },
-  { title: "Why Ambulances Get Stuck in India", date: "Nov 2025", tag: "Research", excerpt: "CAG audits show Indian ambulances face significant delays. The 108 service target of 20 min is often missed.", color: "text-accent" },
-  { title: "India's Traffic Cost: ₹5 Lakh Crore Annually", date: "Oct 2025", tag: "Economics", excerpt: "Studies estimate India loses approximately 3% of GDP to traffic congestion every year.", color: "text-destructive" },
+  {
+    title: "India's Road Crisis: 474 Deaths Every Day",
+    date: "Feb 2026",
+    tag: "Crisis",
+    excerpt: "172,890 road deaths in 2023 — the highest ever recorded. Understanding the scale of the emergency.",
+    color: "text-destructive",
+    link: "https://www.bbc.com/news/articles/c4g49pgx6d0o"
+  },
+  {
+    title: "The Golden Hour: Why Every Minute Matters",
+    date: "Jan 2026",
+    tag: "Medical",
+    excerpt: "For cardiac arrest patients, global survival to hospital discharge averages only 8.8%. Faster response is critical.",
+    color: "text-accent",
+    link: "https://www.fortishealthcare.com/blogs/golden-hour-emergencies-why-every-minute-counts"
+  },
+  {
+    title: "How VAJRA Creates Green Corridors",
+    date: "Jan 2026",
+    tag: "Technology",
+    excerpt: "Our AI predicts traffic patterns and dynamically adjusts signals to create clear paths for emergency vehicles.",
+    color: "text-primary",
+    link: "https://ijrti.org/papers/IJRTI2508163.pdf"
+  },
+  {
+    title: "Chennai Simulation: 25-40% Faster Response",
+    date: "Dec 2025",
+    tag: "Data",
+    excerpt: "Our Chennai urban traffic simulation projects significant reduction in emergency vehicle travel time.",
+    color: "text-primary",
+    link: "https://www.sciencedirect.com/science/article/abs/pii/S0001457523004724"
+  },
+  {
+    title: "Why Ambulances Get Stuck in India",
+    date: "Nov 2025",
+    tag: "Research",
+    excerpt: "CAG audits show Indian ambulances face significant delays. The 108 service target of 20 min is often missed.",
+    color: "text-accent",
+    link: "https://arjasrikanth.in/2025/03/31/dying-to-get-there-indias-ambulance-crisis-is-a-national-emergency/"
+  },
+  {
+    title: "India's Traffic Cost: ₹5 Lakh Crore Annually",
+    date: "Oct 2025",
+    tag: "Economics",
+    excerpt: "Studies estimate India loses approximately 3% of GDP to traffic congestion every year.",
+    color: "text-destructive",
+    link: "https://www.tandfonline.com/doi/full/10.1080/09654313.2024.2331643"
+  },
 ];
 
 const Blog = () => (
@@ -27,7 +68,7 @@ const Blog = () => (
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="stat-card group cursor-pointer hover:border-primary/30 transition-colors"
+            className="stat-card group hover:border-primary/30 transition-colors"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className={`text-xs font-semibold ${post.color}`}>{post.tag}</span>
@@ -37,9 +78,14 @@ const Blog = () => (
             </div>
             <h3 className="font-display text-sm font-bold mb-2 group-hover:text-primary transition-colors">{post.title}</h3>
             <p className="text-xs text-muted-foreground mb-3">{post.excerpt}</p>
-            <span className="text-xs text-primary font-semibold flex items-center gap-1">
+            <a
+              href={post.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary font-semibold flex items-center gap-1 hover:underline"
+            >
               Read More <ArrowRight className="h-3 w-3" />
-            </span>
+            </a>
           </motion.article>
         ))}
       </div>

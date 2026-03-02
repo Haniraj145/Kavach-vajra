@@ -11,7 +11,8 @@ import Crisis from "./pages/Crisis";
 import Solution from "./pages/Solution";
 import CityImpact from "./pages/CityImpact";
 import RequestDemo from "./pages/RequestDemo";
-import JoinUs from "./pages/JoinUs";
+// import JoinUs from "./pages/JoinUs";
+import Feedback from "./pages/Feedback"; // updated import
 import Implementation from "./pages/Implementation";
 import Blog from "./pages/Blog";
 import FAQ from "./pages/FAQ";
@@ -34,7 +35,7 @@ const App = () => (
             <Route path="/solution" element={<Solution />} />
             <Route path="/city-impact" element={<CityImpact />} />
             <Route path="/request-demo" element={<RequestDemo />} />
-            <Route path="/join-us" element={<JoinUs />} />
+            <Route path="/feedback" element={<Feedback />} /> {/* updated route */}
             <Route path="/implementation" element={<Implementation />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/faq" element={<FAQ />} />

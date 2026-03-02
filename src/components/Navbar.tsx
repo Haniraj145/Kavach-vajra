@@ -9,11 +9,12 @@ const navLinks = [
   { label: "Our Solution", path: "/solution" },
   { label: "City Impact", path: "/city-impact" },
   { label: "Request Demo", path: "/request-demo" },
-  { label: "Join Us", path: "/join-us" },
+  // { label: "Join Us", path: "/join-us" },
   { label: "Implementation", path: "/implementation" },
   { label: "Blog", path: "/blog" },
   { label: "FAQ", path: "/faq" },
   // { label: "🎖️ Govt & Defence", path: "/govt-defence" },
+  { label: "Feedback", path: "/feedback" },
 ];
 
 const Navbar = () => {
@@ -40,8 +41,8 @@ const Navbar = () => {
               key={link.path}
               to={link.path}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${location.pathname === link.path
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
             >
               {link.label}
@@ -75,8 +76,8 @@ const Navbar = () => {
                   to={link.path}
                   onClick={() => setIsOpen(false)}
                   className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${location.pathname === link.path
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-secondary"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-secondary"
                     }`}
                 >
                   {link.label}
