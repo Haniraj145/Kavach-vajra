@@ -1,63 +1,106 @@
-import { useState, useEffect, useCallback } from "react";
-import { MapPin, Navigation, Hospital, Clock, AlertTriangle, Loader2, ChevronRight } from "lucide-react";
+import { useState, useCallback } from "react";
+import { MapPin, Navigation, Hospital, AlertTriangle, Loader2, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const TOMTOM_KEY = import.meta.env.VITE_TOMTOM_API_KEY;
 
 interface HospitalResult {
   name: string;
-  vicinity: string;
+  address: string;
   lat: number;
   lng: number;
-  distance: string;
+  distKm: number;
 }
 
-// Simulate nearby hospitals based on coords
-const getSimulatedHospitals = (lat: number, lng: number): HospitalResult[] => {
-  const hospitals = [
-    { name: "City General Hospital", offset: [0.008, 0.005] },
-    { name: "Apollo Emergency Center", offset: [-0.012, 0.008] },
-    { name: "Fortis Healthcare", offset: [0.015, -0.01] },
-    { name: "Max Super Speciality Hospital", offset: [-0.005, -0.015] },
-    { name: "Medanta - The Medicity", offset: [0.02, 0.012] },
-    { name: "AIIMS Trauma Centre", offset: [-0.018, 0.003] },
-    { name: "Sir Ganga Ram Hospital", offset: [0.007, -0.02] },
-    { name: "Safdarjung Hospital", offset: [-0.01, 0.018] },
-  ];
+// ─── TomTom Search API — Nearby Search (category 7321 = Hospital/Polyclinic) ──
+const fetchNearbyHospitals = async (lat: number, lng: number): Promise<HospitalResult[]> => {
+  const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${TOMTOM_KEY}&lat=${lat}&lon=${lng}&radius=4000&categorySet=7321&limit=50`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Hospital search failed");
+  const data = await res.json();
 
-  return hospitals.map((h) => {
-    const hLat = lat + h.offset[0];
-    const hLng = lng + h.offset[1];
-    const dist = Math.sqrt(Math.pow((hLat - lat) * 111, 2) + Math.pow((hLng - lng) * 111 * Math.cos(lat * Math.PI / 180), 2));
+  const results: HospitalResult[] = (data.results || []).map((r: any) => {
+    const pos = r.position;
+    const dist = r.dist; // distance in meters from TomTom
     return {
-      name: h.name,
-      vicinity: `${dist.toFixed(1)} km away`,
-      lat: hLat,
-      lng: hLng,
-      distance: `${dist.toFixed(1)} km`,
+      name: r.poi?.name || "Hospital",
+      address: r.address?.freeformAddress || r.address?.streetName || "Nearby",
+      lat: pos.lat,
+      lng: pos.lon,
+      distKm: +(dist / 1000).toFixed(1),
     };
-  }).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+  });
+
+  // Sort ascending by distance (nearest first: 0 km → 4 km)
+  results.sort((a, b) => a.distKm - b.distKm);
+
+  return results;
 };
 
+// ─── TomTom Routing API — get travel time & distance ────────────────────────
+interface RouteInfo {
+  travelTimeMin: number;
+  distanceKm: number;
+}
+
+const fetchRouteInfo = async (
+  startLat: number, startLng: number,
+  endLat: number, endLng: number
+): Promise<RouteInfo> => {
+  const url = `https://api.tomtom.com/routing/1/calculateRoute/${startLat},${startLng}:${endLat},${endLng}/json?key=${TOMTOM_KEY}&travelMode=car&traffic=true`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Route calculation failed");
+  const data = await res.json();
+
+  const summary = data.routes[0].summary;
+  return {
+    travelTimeMin: Math.round(summary.travelTimeInSeconds / 60),
+    distanceKm: +(summary.lengthInMeters / 1000).toFixed(1),
+  };
+};
+
+// ─── Google Maps iframe URL ─────────────────────────────────────────────────
+const getGoogleMapsIframeUrl = (
+  userLat: number, userLng: number,
+  hospLat: number, hospLng: number
+): string => {
+  return `https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d50000!2d${userLng}!3d${userLat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e0!4m5!1s!2s${userLat},${userLng}!3m2!1d${userLat}!2d${userLng}!4m5!1s!2s${hospLat},${hospLng}!3m2!1d${hospLat}!2d${hospLng}!5e0!3m2!1sen!2sin`;
+};
+
+// ─── Component ──────────────────────────────────────────────────────────────
 const HospitalFinder = () => {
   const [step, setStep] = useState<"initial" | "locating" | "hospitals" | "map">("initial");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [hospitals, setHospitals] = useState<HospitalResult[]>([]);
   const [selectedHospital, setSelectedHospital] = useState<HospitalResult | null>(null);
-  const [responseTime, setResponseTime] = useState<number | null>(null);
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
 
+  // ── Step 1 → 2 → 3: Get location → fetch hospitals
   const confirmLocation = useCallback(() => {
     setStep("locating");
     setError(null);
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const loc = { lat: position.coords.latitude, lng: position.coords.longitude };
         setUserLocation(loc);
-        const simulatedHospitals = getSimulatedHospitals(loc.lat, loc.lng);
-        setHospitals(simulatedHospitals);
-        setStep("hospitals");
+        try {
+          const results = await fetchNearbyHospitals(loc.lat, loc.lng);
+          if (results.length === 0) {
+            setError("No hospitals found within 4 km. Try again from a different area.");
+            setStep("initial");
+            return;
+          }
+          setHospitals(results);
+          setStep("hospitals");
+        } catch {
+          setError("Could not fetch nearby hospitals. Please try again.");
+          setStep("initial");
+        }
       },
-      (err) => {
+      () => {
         setError("Location access denied. Please enable location services and try again.");
         setStep("initial");
       },
@@ -65,23 +108,43 @@ const HospitalFinder = () => {
     );
   }, []);
 
-  const selectHospital = (hospital: HospitalResult) => {
+  // ── Step 3 → 4: Select hospital → fetch route info
+  const selectHospital = async (hospital: HospitalResult) => {
+    if (!userLocation) return;
     setSelectedHospital(hospital);
-    const dist = parseFloat(hospital.distance);
-    // Simulate response time: ~3 min per km in traffic
-    const time = Math.round(dist * 3 + Math.random() * 10 + 15);
-    setResponseTime(time);
+    setRouteLoading(true);
+    setRouteInfo(null);
     setStep("map");
+
+    try {
+      const info = await fetchRouteInfo(userLocation.lat, userLocation.lng, hospital.lat, hospital.lng);
+      setRouteInfo(info);
+    } catch {
+      // Fallback estimate if routing fails
+      setRouteInfo({
+        travelTimeMin: Math.round(hospital.distKm * 3 + 10),
+        distanceKm: hospital.distKm,
+      });
+    } finally {
+      setRouteLoading(false);
+    }
   };
 
-  const getMapUrl = () => {
-    if (!userLocation || !selectedHospital) return "";
-    return `https://www.google.com/maps/embed/v1/directions?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&origin=${userLocation.lat},${userLocation.lng}&destination=${selectedHospital.lat},${selectedHospital.lng}&mode=driving`;
+  // ── Reset: go back to initial state cleanly ──
+  const handleReset = () => {
+    setStep("initial");
+    setSelectedHospital(null);
+    setRouteInfo(null);
+    setRouteLoading(false);
+    // Keep userLocation and hospitals so re-searching is fast
   };
 
-  const getStaticMapUrl = () => {
-    if (!userLocation || !selectedHospital) return "";
-    return `https://www.google.com/maps?saddr=${userLocation.lat},${userLocation.lng}&daddr=${selectedHospital.lat},${selectedHospital.lng}&output=embed`;
+  // ── Go back to hospital list (to pick a different one) ──
+  const handlePickAnother = () => {
+    setSelectedHospital(null);
+    setRouteInfo(null);
+    setRouteLoading(false);
+    setStep("hospitals");
   };
 
   return (
@@ -94,15 +157,9 @@ const HospitalFinder = () => {
 
         <div className="gradient-card rounded-2xl border border-border overflow-hidden">
           <AnimatePresence mode="wait">
-            {/* Step 1: Confirm Location */}
+            {/* ═══ Step 1: Confirm Location ═══ */}
             {step === "initial" && (
-              <motion.div
-                key="initial"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="p-8 md:p-12 text-center"
-              >
+              <motion.div key="initial" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-8 md:p-12 text-center">
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                     <Hospital className="h-5 w-5 text-primary-foreground" />
@@ -124,45 +181,31 @@ const HospitalFinder = () => {
                   <MapPin className="h-5 w-5" /> Confirm My Location
                 </button>
 
-                <p className="mt-4 text-xs text-muted-foreground">
-                  We'll use your location to calculate emergency response time
-                </p>
+                <p className="mt-4 text-xs text-muted-foreground">We'll use your location to find real nearby hospitals (within 4 km)</p>
                 <p className="mt-2 text-xs text-accent flex items-center justify-center gap-1">
-                  <AlertTriangle className="h-3 w-3" /> This is a simulation for demonstration purposes only
+                  <AlertTriangle className="h-3 w-3" /> Response times are estimates for demonstration purposes
                 </p>
 
-                {error && (
-                  <p className="mt-4 text-sm text-destructive">{error}</p>
-                )}
+                {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
               </motion.div>
             )}
 
-            {/* Step 2: Locating */}
+            {/* ═══ Step 2: Locating ═══ */}
             {step === "locating" && (
-              <motion.div
-                key="locating"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="p-12 text-center"
-              >
+              <motion.div key="locating" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-12 text-center">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
                 <h3 className="font-display text-xl font-bold mb-2">Locating you...</h3>
-                <p className="text-muted-foreground">Getting your GPS coordinates</p>
+                <p className="text-muted-foreground">Getting your GPS coordinates & searching nearby hospitals</p>
               </motion.div>
             )}
 
-            {/* Step 3: Hospital List */}
+            {/* ═══ Step 3: Hospital List (sorted nearest → farthest) ═══ */}
             {step === "hospitals" && (
-              <motion.div
-                key="hospitals"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="p-6 md:p-8"
-              >
+              <motion.div key="hospitals" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 md:p-8">
                 <h3 className="font-display text-xl font-bold mb-2 text-center">Nearest Emergency Hospitals</h3>
-                <p className="text-center text-muted-foreground text-sm mb-6">Select the hospital nearest to you</p>
+                <p className="text-center text-muted-foreground text-sm mb-6">
+                  {hospitals.length} hospitals found within 4 km · Sorted nearest first
+                </p>
 
                 <div className="space-y-2">
                   {hospitals.map((hospital, i) => (
@@ -177,33 +220,39 @@ const HospitalFinder = () => {
                         </div>
                         <div>
                           <p className="text-sm font-semibold">{hospital.name}</p>
-                          <p className="text-xs text-muted-foreground">{hospital.vicinity}</p>
+                          <p className="text-xs text-muted-foreground">{hospital.address}</p>
                         </div>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-primary">{hospital.distKm} km</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
                     </button>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            {/* Step 4: Map & Response Time */}
-            {step === "map" && selectedHospital && (
-              <motion.div
-                key="map"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="p-6 md:p-8"
-              >
+            {/* ═══ Step 4: Google Maps iframe + Response Time ═══ */}
+            {step === "map" && selectedHospital && userLocation && (
+              <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 md:p-8">
                 <h3 className="font-display text-xl font-bold mb-4 text-center">Current Emergency Response Time</h3>
 
-                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center mb-6">
-                  <p className="stat-value text-6xl font-bold text-destructive">{responseTime}</p>
-                  <p className="text-lg text-muted-foreground mt-1">Minutes</p>
-                </div>
+                {/* Response time card */}
+                {routeLoading ? (
+                  <div className="rounded-xl border border-border bg-secondary/30 p-6 text-center mb-6">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Calculating route...</p>
+                  </div>
+                ) : routeInfo && (
+                  <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center mb-6">
+                    <p className="stat-value text-6xl font-bold text-destructive">{routeInfo.travelTimeMin}</p>
+                    <p className="text-lg text-muted-foreground mt-1">Minutes</p>
+                    <p className="text-xs text-muted-foreground mt-1">Distance: {routeInfo.distanceKm} km (with live traffic)</p>
+                  </div>
+                )}
 
-                {/* Google Maps iframe */}
+                {/* Google Maps iframe — Point A (user) to Point B (hospital) */}
                 <div className="rounded-xl overflow-hidden border border-border mb-6" style={{ height: 350 }}>
                   <iframe
                     title="Route to Hospital"
@@ -211,8 +260,9 @@ const HospitalFinder = () => {
                     height="100%"
                     style={{ border: 0 }}
                     loading="lazy"
-                    src={getStaticMapUrl()}
                     allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://www.google.com/maps?saddr=${userLocation.lat},${userLocation.lng}&daddr=${selectedHospital.lat},${selectedHospital.lng}&dirflg=d&output=embed`}
                   />
                 </div>
 
@@ -220,30 +270,38 @@ const HospitalFinder = () => {
                   <p className="text-sm text-muted-foreground mb-1">
                     Route to <strong className="text-foreground">{selectedHospital.name}</strong>
                   </p>
-                  <p className="text-xs text-muted-foreground">Distance: {selectedHospital.distance}</p>
+                  <p className="text-xs text-muted-foreground">{selectedHospital.address}</p>
                 </div>
 
-                {/* With KAVACH */}
-                <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 text-center mb-6">
-                  <h4 className="font-display text-sm font-bold text-primary mb-3">With KAVACH Green Corridor System</h4>
-                  <p className="stat-value text-5xl font-bold text-primary">
-                    {responseTime ? Math.round(responseTime * 0.6) : "--"}
-                  </p>
-                  <p className="text-lg text-muted-foreground mt-1">Minutes</p>
-                  <p className="text-sm text-primary font-semibold mt-2">
-                    {responseTime ? responseTime - Math.round(responseTime * 0.6) : "--"} minutes saved · ~40% faster
-                  </p>
-                </div>
+                {/* KAVACH projected time */}
+                {routeInfo && !routeLoading && (
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 text-center mb-6">
+                    <h4 className="font-display text-sm font-bold text-primary mb-3">With KAVACH Green Corridor System</h4>
+                    <p className="stat-value text-5xl font-bold text-primary">
+                      {Math.round(routeInfo.travelTimeMin * 0.6)}
+                    </p>
+                    <p className="text-lg text-muted-foreground mt-1">Minutes</p>
+                    <p className="text-sm text-primary font-semibold mt-2">
+                      {routeInfo.travelTimeMin - Math.round(routeInfo.travelTimeMin * 0.6)} minutes saved · ~40% faster
+                    </p>
+                  </div>
+                )}
 
-                <div className="flex gap-3 justify-center">
+                <div className="flex gap-3 justify-center flex-wrap">
                   <button
-                    onClick={() => { setStep("initial"); setSelectedHospital(null); setResponseTime(null); }}
+                    onClick={handlePickAnother}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-6 py-3 text-sm font-medium transition-colors hover:bg-muted"
+                  >
+                    ← Pick Another Hospital
+                  </button>
+                  <button
+                    onClick={handleReset}
                     className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-6 py-3 text-sm font-medium transition-colors hover:bg-muted"
                   >
                     🔄 Run Again
                   </button>
                   <a
-                    href={`https://www.google.com/maps/dir/${userLocation?.lat},${userLocation?.lng}/${selectedHospital.lat},${selectedHospital.lng}`}
+                    href={`https://www.google.com/maps/dir/${userLocation.lat},${userLocation.lng}/${selectedHospital.lat},${selectedHospital.lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"

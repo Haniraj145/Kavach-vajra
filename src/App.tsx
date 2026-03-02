@@ -15,7 +15,7 @@ import JoinUs from "./pages/JoinUs";
 import Implementation from "./pages/Implementation";
 import Blog from "./pages/Blog";
 import FAQ from "./pages/FAQ";
-import GovtDefence from "./pages/GovtDefence";
+// import GovtDefence from "./pages/GovtDefence";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,7 +38,7 @@ const App = () => (
             <Route path="/implementation" element={<Implementation />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/faq" element={<FAQ />} />
-            <Route path="/govt-defence" element={<GovtDefence />} />
+            {/* <Route path="/govt-defence" element={<GovtDefence />} /> */}
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer />
