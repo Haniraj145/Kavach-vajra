@@ -15,12 +15,46 @@ const Solution = () => (
 
       <div className="grid gap-6 md:grid-cols-2 mb-12">
         {[
-          { icon: Brain, title: "AI-Powered Prediction", desc: "Analyses traffic patterns in real-time to predict optimal routes for priority vehicles" },
-          { icon: Radio, title: "Dynamic Signal Control", desc: "Automatically adjusts traffic signals to create green corridors ahead of the vehicle" },
-          { icon: Zap, title: "25-40% Faster Response", desc: "Based on internal simulation data. Actual reduction depends on deployment conditions." },
-          { icon: Shield, title: "Patent Filed", desc: "Indian Patent Office. Working simulation available for demonstration." },
-          { icon: Activity, title: "Real-time Coordination", desc: "Hospital receives patient vitals before arrival. Ambulance crew prepared with case details." },
-          { icon: Globe, title: "Scalable Globally", desc: "Designed to work with existing infrastructure. Subject to technical assessment per city." },
+          {
+            icon: Brain,
+            title: "AI-Powered Prediction",
+            desc: "Analyses traffic patterns in real-time to predict optimal routes for priority vehicles",
+          },
+          {
+            icon: Radio,
+            title: "Dynamic Signal Control",
+            desc: "Automatically adjusts traffic signals to create green corridors ahead of the vehicle",
+          },
+          {
+            icon: Zap,
+            title: "25-40% Faster Response",
+            desc: "Based on internal simulation data. Actual reduction depends on deployment conditions.",
+          },
+          {
+            icon: Shield,
+            title: "Project Documentation",
+            desc: (
+              <a
+                href="/documents/kavach-vajra-overview.pdf"
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 underline hover:text-blue-300"
+              >
+                Download complete system overview (PDF)
+              </a>
+            ),
+          },
+          {
+            icon: Activity,
+            title: "Real-time Coordination",
+            desc: "Hospital receives patient vitals before arrival. Ambulance crew prepared with case details.",
+          },
+          {
+            icon: Globe,
+            title: "Scalable Globally",
+            desc: "Designed to work with existing infrastructure. Subject to technical assessment per city.",
+          },
         ].map((item, i) => (
           <motion.div
             key={item.title}

@@ -37,7 +37,7 @@ const Footer = () => (
             {[
               ["Request Demo", "/request-demo"],
               ["Join Us", "/join-us"],
-              ["Govt & Defence", "/govt-defence"],
+              // ["Govt & Defence", "/govt-defence"],
               ["FAQ", "/faq"],
             ].map(([label, path]) => (
               <Link key={path} to={path} className="text-sm text-muted-foreground hover:text-primary transition-colors">
@@ -55,7 +55,7 @@ const Footer = () => (
         </div>
       </div>
       <div className="mt-8 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-        © 2026 KAVACH-VAJRA. Made in India, for the world. Patent Filed.
+        © 2026 KAVACH-VAJRA. Made in India, for the world.
       </div>
     </div>
   </footer>
