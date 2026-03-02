@@ -118,11 +118,15 @@ const HospitalFinder = () => {
 
     try {
       const info = await fetchRouteInfo(userLocation.lat, userLocation.lng, hospital.lat, hospital.lng);
-      setRouteInfo(info);
+      setRouteInfo({
+        ...info,
+        travelTimeMin: (info.travelTimeMin * 2) + 5,
+      });
     } catch {
       // Fallback estimate if routing fails
+      const fallbackTime = Math.round(hospital.distKm * 3 + 10);
       setRouteInfo({
-        travelTimeMin: Math.round(hospital.distKm * 3 + 10),
+        travelTimeMin: (fallbackTime * 2) + 5,
         distanceKm: hospital.distKm,
       });
     } finally {
