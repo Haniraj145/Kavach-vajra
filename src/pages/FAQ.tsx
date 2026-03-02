@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, HelpCircle } from "lucide-react";
 
 const faqs = [
-  { q: "What is KAVACH?", a: "KAVACH (powered by AI-CER) is an AI-powered emergency response system that creates dynamic green corridors for ambulances, defence, and VIP vehicles by intelligently controlling traffic signals in real-time." },
+  { q: "What is KAVACH?", a: "KAVACH (powered by VAJRA) is an AI-powered emergency response system that creates dynamic green corridors for ambulances, defence, and VIP vehicles by intelligently controlling traffic signals in real-time." },
   { q: "How does the green corridor work?", a: "Our AI analyses traffic patterns, predicts optimal routes, and automatically adjusts traffic signals ahead of the emergency vehicle to create a clear path — reducing travel time by a projected 25-40%." },
   { q: "Is this actually deployed anywhere?", a: "KAVACH is currently in the simulation and pilot stage. We have a working simulation using Chennai traffic data. We are seeking government partnerships for real-world deployment." },
   { q: "What about the patent?", a: "A patent application has been filed with the Indian Patent Office covering the core AI-CER technology for dynamic green corridor creation." },

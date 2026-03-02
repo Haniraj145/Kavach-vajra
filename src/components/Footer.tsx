@@ -49,7 +49,7 @@ const Footer = () => (
         <div>
           <h4 className="font-display text-sm font-semibold mb-3">Contact</h4>
           <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> savelives@kavach.com</span>
+            <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> kavachvajra@gmail.com</span>
             <span className="flex items-center gap-2"><MapPin className="h-4 w-4" /> India</span>
           </div>
         </div>
