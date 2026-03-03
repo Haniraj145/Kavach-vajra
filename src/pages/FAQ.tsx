@@ -22,7 +22,7 @@ const FAQ = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
           <HelpCircle className="h-10 w-10 text-primary mx-auto mb-4" />
           <h1 className="font-display text-4xl font-bold md:text-5xl mb-4">FAQ</h1>
-          <p className="text-muted-foreground">Frequently asked questions about KAVACH and AI-CER technology.</p>
+          <p className="text-muted-foreground">Frequently asked questions about KAVACH and VAJRA technology.</p>
         </motion.div>
 
         <div className="space-y-3">
